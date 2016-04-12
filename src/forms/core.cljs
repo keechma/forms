@@ -3,8 +3,13 @@
 
 (enable-console-print!)
 
+(defn ^:private keyword-or-integer [key]
+  (if (re-matches #"[0-9]+" key)
+    (js/parseInt key 10)
+    (keyword key)))
+
 (defn ^:private validation-key-to-path [key]
-  (str/split (name key) "."))
+  (map keyword-or-integer (str/split (name key) ".")))
 
 (defn ^:private validate-attr [value validators]
   (reduce (fn [failed [name validator]]
@@ -12,7 +17,7 @@
               (conj failed name)
               failed)) [] validators))
 
-(defn ^:private validate-map [errors key attr-validators]
+(defn ^:private validate-map [input errors key attr-validators]
   (let [path (validation-key-to-path key)
         value (get-in input path)
         failed (validate-attr value attr-validators)]
@@ -22,5 +27,5 @@
 
 (defn validator [validators]
   (fn [input]
-    (let [errors (reduce-kv validate-map {} validators)]
+    (let [errors (reduce-kv (partial validate-map input) {} validators)]
       (if (= errors {}) nil errors))))
