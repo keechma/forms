@@ -10,23 +10,39 @@
 
 (deftest simple-validator []
   (let [validator (core/validator {:input [not-nil]})]
-    (is (= {:input {:value nil :failed [:not-nil]}}
+    (is (= {:input {:$errors$ {:value nil :failed [:not-nil]}}}
            (validator {})))))
 
 (deftest multiple-validators []
   (let [validator (core/validator {:input [not-nil is-one]})]
-    (is (= {:input {:value nil :failed [:not-nil :is-one]}}
+    (is (= {:input {:$errors$ {:value nil :failed [:not-nil :is-one]}}}
            (validator {})))))
 
 (deftest nested-path []
   (let [validator (core/validator {:user.username [not-nil]
                                    :user.foo [is-one]})]
-    (is (= {:user {:username {:value nil :failed [:not-nil]}}}
+    (is (= {:user {:username {:$errors$ {:value nil :failed [:not-nil]}}}}
            (validator {:user {:foo 1}})))))
 
 (deftest path-in-vector []
   (let [validator (core/validator {:user.social-networks.0.service [is-twitter]
+                                   :user.username [not-nil]
                                    :user.social-networks.1.service [is-facebook]})]
-       (is (= {:user {:social-networks {0 {:service {:value "snapchat" :failed [:is-twitter]}}}}}
+    (is (= {:user {:social-networks {0 {:service {:$errors$ {:value "snapchat" :failed [:is-twitter]}}}}
+                   :username {:$errors$ {:value nil :failed [:not-nil]}}}}
               (validator {:user {:social-networks [{:service "snapchat"}
                                                    {:service "facebook"}]}})))))
+
+(deftest nested-in-list []
+  (let [validator (core/validator {:user.social-networks.*.service [not-nil]})]
+    (is (= {:user {:social-networks {1 {:service {:$errors$ {:value nil :failed [:not-nil]}}}}}})
+        (validator {:user {:social-networks [{:service "twitter"}
+                                             {:service nil}]}}))))
+
+
+(deftest deeply-nested-lists []
+  (let [validator (core/validator {:user.profiles.*.social-networks.*.service [not-nil]})]
+    (is (= {:user {:profiles {1 {:social-networks {1 {:service {:$errors$ {:value nil :failed [:not-nil]}}}}}}}}
+           (validator {:user {:profiles [{:social-networks [{:service "twitter"}]}
+                                         {:social-networks [{:service "facebook"}
+                                                            {:service nil}]}]}})))))
