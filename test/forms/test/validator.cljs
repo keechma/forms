@@ -46,3 +46,16 @@
            (validator {:user {:profiles [{:social-networks [{:service "twitter"}]}
                                          {:social-networks [{:service "facebook"}
                                                             {:service nil}]}]}})))))
+
+(deftest strings-in-vector []
+  (let [validator (v/validator {:tags.* [not-nil]})]
+    (is (= {:tags {1 {:$errors$ {:value nil :failed [:not-nil]}}}}
+           (validator {:tags ["foo" nil "bar"]})))))
+
+(deftest compose-validators []
+  (let [validator-a (v/validator {:username [not-nil]})
+        validator-b (v/validator {:password [not-nil]})
+        composed-validators (v/compose-validators validator-a validator-b)]
+    (is (= {:username {:$errors$ {:value nil :failed [:not-nil]}}
+            :password {:$errors$ {:value nil :failed [:not-nil]}}}
+           (composed-validators {:real-name "Mihael Konjevic"})))))

@@ -54,7 +54,17 @@
         validator (make-validator path attr-validators)]
     (validator input errors)))
 
+(defn ^:private validator-runner
+  ([validators input] (validator-runner validators input {}))
+  ([validators input errors]
+   (let [new-errors (reduce-kv (partial validate-map input) errors validators)]
+      (if (= new-errors {}) nil new-errors))))
+
 (defn validator [validators]
+  (partial validator-runner validators))
+
+(defn compose-validators [& validators]
   (fn [input]
-    (let [errors (reduce-kv (partial validate-map input) {} validators)]
-      (if (= errors {}) nil errors))))
+    (reduce (fn [acc v]
+              (v input acc)) {} validators)))
+
