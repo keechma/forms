@@ -35,18 +35,22 @@
               (conj failed name)
               failed)) [] validators))
 
+(defn ^:private attr-errors [validators value errors]
+  (let [failed (validate-attr value validators)]
+    (when (pos? (count failed))
+      (if (= errors {})
+        (assoc errors :$errors$ {:value value :failed failed})
+        (let [existing-failed (get-in errors [:$errors$ :failed])]
+          (assoc-in errors [:$errors$ :failed] (into [] (concat existing-failed failed))))))))
+
+(defn ^:private key-to-getter [key]
+  (if (= key :*) get-list (partial get-by-key key)))
+
 (defn ^:private make-validator [path validators]
-  (let [iterator
-        (reverse (map (fn [key]
-                        (if (= key :*)
-                          get-list
-                          (partial get-by-key key))) path))]
+  (let [iterator (reverse (map key-to-getter path))]
     (reduce (fn [acc v]
               (if (nil? acc)
-                (partial v (fn [value errors]
-                             (let [failed (validate-attr value validators)]
-                               (when (pos? (count failed))
-                                 (assoc errors :$errors$ {:value value :failed failed})))))
+                (partial v (partial attr-errors validators))
                 (partial v acc))) nil iterator)))
 
 (defn ^:private validate-map [input errors key attr-validators]
@@ -58,13 +62,12 @@
   ([validators input] (validator-runner validators input {}))
   ([validators input errors]
    (let [new-errors (reduce-kv (partial validate-map input) errors validators)]
-      (if (= new-errors {}) nil new-errors))))
+     (if (= new-errors {}) nil new-errors))))
 
 (defn validator [validators]
   (partial validator-runner validators))
 
-(defn compose-validators [& validators]
+(defn comp-validators [& validators]
   (fn [input]
-    (reduce (fn [acc v]
-              (v input acc)) {} validators)))
+    (reduce (fn [acc v] (v input acc)) {} validators)))
 

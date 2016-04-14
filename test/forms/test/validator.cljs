@@ -52,10 +52,24 @@
     (is (= {:tags {1 {:$errors$ {:value nil :failed [:not-nil]}}}}
            (validator {:tags ["foo" nil "bar"]})))))
 
-(deftest compose-validators []
+(deftest comp-validators []
   (let [validator-a (v/validator {:username [not-nil]})
         validator-b (v/validator {:password [not-nil]})
-        composed-validators (v/compose-validators validator-a validator-b)]
+        composed-validators (v/comp-validators validator-a validator-b)]
     (is (= {:username {:$errors$ {:value nil :failed [:not-nil]}}
             :password {:$errors$ {:value nil :failed [:not-nil]}}}
            (composed-validators {:real-name "Mihael Konjevic"})))))
+
+(deftest comp-validators-for-vectors []
+  (let [validator-a (v/validator {:tags.* [not-nil]})
+        validator-b (v/validator {:tags.* [is-twitter]})
+        composed-validators (v/comp-validators validator-a validator-b)]
+    (is (= {:tags {1 {:$errors$ {:value nil :failed [:not-nil :is-twitter]}}}}
+           (composed-validators {:tags ["twitter" nil]})))))
+
+(deftest comp-validators-for-same-attr []
+  (let [validator-a (v/validator {:social-network [not-nil]})
+        validator-b (v/validator {:social-network [is-twitter]})
+        composed-validators (v/comp-validators validator-a validator-b)]
+    (is (= {:social-network {:$errors$ {:value nil :failed [:not-nil :is-twitter]}}}
+           (composed-validators {})))))
