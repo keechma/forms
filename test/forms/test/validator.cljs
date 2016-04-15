@@ -73,3 +73,15 @@
         composed-validators (v/comp-validators validator-a validator-b)]
     (is (= {:social-network {:$errors$ {:value nil :failed [:not-nil :is-twitter]}}}
            (composed-validators {})))))
+
+(deftest nested-validators []
+  (let [validator-a (v/validator {:username [not-nil]
+                                  :password [not-nil]})
+        validator-b (v/validator {:title [not-nil]
+                                  :user.username [is-twitter]
+                                  :user [validator-a]})]
+    (is (= {:title {:$errors$ {:value nil :failed [:not-nil]}}
+            :user {:username {:$errors$ {:value nil :failed [:is-twitter :not-nil]}}}}
+           (validator-b {:title nil
+                         :user {:username nil
+                                :password "foo"}})))))
