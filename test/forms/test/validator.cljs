@@ -1,12 +1,7 @@
 (ns forms.test.validator
   (:require [cljs.test :refer-macros [deftest is]]
-            [forms.validator :as v]))
-
-(def not-nil [:not-nil (fn [v] (not (nil? v)))])
-(def is-one [:is-one (fn [v] (= 1 v))])
-(def is-twitter [:is-twitter (fn [v] (= v "twitter"))])
-(def is-facebook [:is-facebook (fn [v] (= v "facebook"))])
-
+            [forms.validator :as v]
+            [forms.test.common :refer [not-nil is-one is-twitter is-facebook]]))
 
 (deftest simple-validator []
   (let [validator (v/validator {:input [not-nil]})]

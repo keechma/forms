@@ -1,17 +1,7 @@
 (ns forms.validator
-  (:require [clojure.string :as str]))
+  (:require [forms.util :refer [key-to-path]]))
 
 (enable-console-print!)
-
-
-(defn ^:private keyword-or-integer [key]
-  (if (re-matches #"[0-9]+" key)
-    (js/parseInt key 10)
-    (keyword key)))
-
-(defn ^:private validation-key-to-path [key]
-  (map keyword-or-integer (str/split (name key) ".")))
-
 
 (defn ^:private get-by-key [key next parent-data parent-errors]
   (let [data (get parent-data key)
@@ -65,15 +55,14 @@
                 (partial v acc))) nil iterator)))
 
 (defn ^:private validate-map [input errors key attr-validators]
-  (let [path (validation-key-to-path key)
+  (let [path (key-to-path key)
         validator (make-validator path attr-validators)]
     (validator input errors)))
 
 (defn ^:private validator-runner
   ([validators input] (validator-runner validators input {}))
   ([validators input errors]
-   (let [new-errors (reduce-kv (partial validate-map input) errors validators)]
-     (if (= new-errors {}) nil new-errors))))
+   (reduce-kv (partial validate-map input) errors validators)))
 
 (defn validator [validators]
   (partial validator-runner validators))
