@@ -12,7 +12,7 @@
   (errors [this] [this all-errors?] "Returns errors atom")
   (errors-for-path [this key-path] "Returns errors for the key")
   (data [this] "Returns data atom")
-  (data-for [this key-path] "Returns data for the key")
+  (data-for-path [this key-path] "Returns data for the key")
   (validate! [this] [this dirty-only?] "Validate form")
   (commit! [this] "Commit form")
   (update! [this data] "Update data")
@@ -20,14 +20,16 @@
   (mark-dirty-paths! [this] "Mark dirty keys")
   (is-valid? [this] "Is the form in the valid state")
   (is-valid-path? [this key-path] "Is the path in the valid state")
+  (dirty-paths-valid? [this] "Are the dirty fields valid")
   (reset-form! [this] [this init-data] "Reset form"))
 
 (defrecord Form [state-atom validator opts]
   IForm
   (init! [this]
     (let [auto-validate? (get-in this [:opts :auto-validate?])]
+      (remove-watch (state this) :__form__) 
       (when auto-validate?
-        (add-watch (state this) nil
+        (add-watch (state this) :__form__
                    (fn [_ _ old-val new-val]
                      (let [old-data (:data old-val)
                            new-data (:data new-val)]
@@ -44,10 +46,10 @@
           current-state @(state this)
           is-dirty? (or (:all-dirty? current-state)
                         (contains? (:dirty-key-paths current-state) path))]
-      (when is-dirty? (get-in @(errors this) path))))
+      (when is-dirty? (get-in @(errors this) (conj path :$errors$)))))
   (data [this]
     (r/cursor (state this) [:data]))
-  (data-for [this key-path]
+  (data-for-path [this key-path]
     (get-in @(data this) (key-to-path key-path)))
   (validate! [this]
     (validate! this false))
@@ -74,14 +76,34 @@
     (let [current-state @(state this)]
       (swap! (state this) assoc :dirty-key-paths
              (calculate-dirty-fields (:init-data current-state) (:data current-state)))))
+  (dirty-paths-valid? [this]
+    (let [current-state @(state this)
+          current-errors (:errors current-state)
+          all-dirty? (:all-dirty? current-state)]
+      (if (and all-dirty? (not= {} current-errors))
+        false
+        (let [dirty-paths (:dirty-key-paths current-state)
+              valid-paths (take-while
+                           (fn [path]
+                             (nil? (get-in current-errors path))) dirty-paths)]
+          (= (count valid-paths) (count dirty-paths))))))
   (is-valid? [this]
     (= {} @(errors this)))
   (is-valid-path? [this key-path]
-    (= nil (errors-for-path this key-path)))
+    (let [path (key-to-path key-path)
+          current-state @(state this)
+          errors (:errors current-state)
+          all-dirty? (:all-dirty? current-state)
+          dirty-paths (:dirty-key-paths current-state)
+          invalid-path? (not (nil? (get-in errors path)))]
+      (cond
+        (and all-dirty? invalid-path?) false
+        (and (contains? dirty-paths path) invalid-path?) false
+        :else true)))
   (reset-form! [this]
     (reset-form! this (:init-data @(state this))))
   (reset-form! [this init-data]
-    (reset! (state this) init-data)))
+    (reset! (state this) (init-state init-data))))
 
 (defn init-state [data]
   {:errors {}
