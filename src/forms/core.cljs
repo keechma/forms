@@ -73,12 +73,17 @@
   (mark-dirty! [this]
     (let [errors (validator @(data this))
           errors-keypaths (u/errors-keypaths errors)
-          current-dirty-paths (:dirty-key-paths @(state this))]
-      (swap! (state this) assoc :dirty-key-paths (set (concat current-dirty-paths errors-keypaths))))) 
+          current-state @(state this)
+          current-dirty-paths (:dirty-key-paths state)]
+      (reset! (state this)
+              (assoc current-state
+                     :cached-dirty-key-paths (set (concat (:cached-dirty-key-paths state) errors-keypaths))
+                     :dirty-key-paths (set errors-keypaths))))) 
   (mark-dirty-paths! [this]
-    (let [current-state @(state this)]
-      (swap! (state this) assoc :dirty-key-paths
-             (calculate-dirty-fields (:init-data current-state) (:data current-state)))))
+    (let [current-state @(state this)
+          dirty-paths (calculate-dirty-fields (:init-data current-state) (:data current-state))]
+      (swap! (state this) assoc :dirty-key-paths (set (concat dirty-paths
+                                                              (:cached-dirty-key-paths current-state))))))
   (dirty-paths-valid? [this]
     (let [current-state @(state this)
           current-errors (:errors current-state)]
@@ -105,6 +110,7 @@
   {:errors {}
    :init-data data
    :data (or data {})
+   :cached-dirty-key-paths (set {})
    :dirty-key-paths (set {})})
 
 (defn with-default-opts [opts]

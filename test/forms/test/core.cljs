@@ -46,9 +46,7 @@
         form (core/constructor validator)
         inited-form (form {:username "foo"})]
     (core/update! inited-form {:username "bar"})
-    (is (= @(core/data-for-path inited-form :username) "bar"))
-    (is (= #{[:username]}
-           (:dirty-key-paths @(core/state inited-form))))))
+    (is (= @(core/data-for-path inited-form :username) "bar"))))
 
 (deftest commit! []
   (let [commit-called (atom 0)
@@ -125,3 +123,6 @@
     (is (core/is-valid? inited-form))
     (core/validate! inited-form)
     (is (core/is-valid? inited-form))))
+
+(deftest validate-all []
+  )
