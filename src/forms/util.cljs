@@ -25,3 +25,20 @@
           (dissoc m k)))
       m)
     (dissoc m k)))
+
+
+(defn errors-keypaths
+  ([data] (distinct (:results (errors-keypaths data [] {:results []}))))
+  ([data path results]
+   (reduce-kv (fn [m k v]
+                (if (= k :$errors$)
+                  (assoc m :results (conj (:results m) path))
+                  (if (or (vector? v) (map? v))
+                    (let [{:keys [results lengths]} m
+                          new-path (conj path k)
+                          child-paths (errors-keypaths v new-path m)
+                          new-results (:results child-paths)]
+                      {:results (concat results new-results)})
+                    (if (nil? v)
+                      m
+                      (assoc m :results (conj (:results m) (conj path k))))))) results data)))

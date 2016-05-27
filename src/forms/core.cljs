@@ -1,7 +1,7 @@
 (ns forms.core
   (:require [reagent.core :as r]
             [clojure.string :as str]
-            [forms.util :refer [key-to-path]]
+            [forms.util :as u :refer [key-to-path]]
             [forms.dirty :refer [calculate-dirty-fields]])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
@@ -46,8 +46,7 @@
     (reaction
      (let [path (key-to-path key-path)
            current-state @(state this)
-           is-dirty? (or (:all-dirty? current-state)
-                         (contains? (:dirty-key-paths current-state) path))]
+           is-dirty? (contains? (:dirty-key-paths current-state) path)]
        (when is-dirty? (get-in @(errors this) (conj path :$errors$))))))
   (data [this]
     (r/cursor (state this) [:data]))
@@ -72,37 +71,31 @@
     (mark-dirty-paths! this)
     (validate! this))
   (mark-dirty! [this]
-    (mark-dirty! this true))
-  (mark-dirty! [this is-dirty]
-    (swap! (state this) assoc :all-dirty? is-dirty))
+    (let [errors (validator @(data this))
+          errors-keypaths (u/errors-keypaths errors)
+          current-dirty-paths (:dirty-key-paths @(state this))]
+      (swap! (state this) assoc :dirty-key-paths (set (concat current-dirty-paths errors-keypaths))))) 
   (mark-dirty-paths! [this]
     (let [current-state @(state this)]
       (swap! (state this) assoc :dirty-key-paths
              (calculate-dirty-fields (:init-data current-state) (:data current-state)))))
   (dirty-paths-valid? [this]
     (let [current-state @(state this)
-          current-errors (:errors current-state)
-          all-dirty? (:all-dirty? current-state)]
-      (if (and all-dirty? (not= {} current-errors))
-        false
-        (let [dirty-paths (:dirty-key-paths current-state)
-              valid-paths (take-while
-                           (fn [path]
-                             (nil? (get-in current-errors path))) dirty-paths)]
-          (= (count valid-paths) (count dirty-paths))))))
+          current-errors (:errors current-state)]
+      (let [dirty-paths (:dirty-key-paths current-state)
+            valid-paths (take-while
+                         (fn [path]
+                           (nil? (get-in current-errors path))) dirty-paths)]
+        (= (count valid-paths) (count dirty-paths)))))
   (is-valid? [this]
     (= {} @(errors this)))
   (is-valid-path? [this key-path]
     (let [path (key-to-path key-path)
           current-state @(state this)
           errors (:errors current-state)
-          all-dirty? (:all-dirty? current-state)
           dirty-paths (:dirty-key-paths current-state)
           invalid-path? (not (nil? (get-in errors path)))]
-      (cond
-        (and all-dirty? invalid-path?) false
-        (and (contains? dirty-paths path) invalid-path?) false
-        :else true)))
+      (not (and (contains? dirty-paths path) invalid-path?))))
   (reset-form! [this]
     (reset-form! this (:init-data @(state this))))
   (reset-form! [this init-data]
@@ -112,8 +105,7 @@
   {:errors {}
    :init-data data
    :data (or data {})
-   :dirty-key-paths (set {})
-   :all-dirty? false})
+   :dirty-key-paths (set {})})
 
 (defn with-default-opts [opts]
   (merge {:on-commit (fn [_])
