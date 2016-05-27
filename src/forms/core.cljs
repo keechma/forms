@@ -2,7 +2,8 @@
   (:require [reagent.core :as r]
             [clojure.string :as str]
             [forms.util :refer [key-to-path]]
-            [forms.dirty :refer [calculate-dirty-fields]]))
+            [forms.dirty :refer [calculate-dirty-fields]])
+  (:require-macros [reagent.ratom :refer [reaction]]))
 
 (declare init-state)
 
@@ -42,15 +43,17 @@
   (errors [this]
     (r/cursor (state this) [:errors]))
   (errors-for-path [this key-path]
-    (let [path (key-to-path key-path)
-          current-state @(state this)
-          is-dirty? (or (:all-dirty? current-state)
-                        (contains? (:dirty-key-paths current-state) path))]
-      (when is-dirty? (get-in @(errors this) (conj path :$errors$)))))
+    (reaction
+     (let [path (key-to-path key-path)
+           current-state @(state this)
+           is-dirty? (or (:all-dirty? current-state)
+                         (contains? (:dirty-key-paths current-state) path))]
+       (when is-dirty? (get-in @(errors this) (conj path :$errors$))))))
   (data [this]
     (r/cursor (state this) [:data]))
   (data-for-path [this key-path]
-    (get-in @(data this) (key-to-path key-path)))
+    (reaction
+     (get-in @(data this) (key-to-path key-path))))
   (validate! [this]
     (validate! this false))
   (validate! [this dirty-only?]
@@ -107,7 +110,6 @@
 
 (defn init-state [data]
   {:errors {}
-   :external-errors {}
    :init-data data
    :data (or data {})
    :dirty-key-paths (set {})

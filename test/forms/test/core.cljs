@@ -2,7 +2,7 @@
   (:require [cljs.test :refer-macros [deftest is]]
             [forms.validator :as v]
             [forms.core :as core]
-            [forms.test.common :refer [not-nil is-one is-twitter is-facebook]]))
+            [forms.test.common :refer [not-nil not-empty is-one is-twitter is-facebook]]))
 
 (deftest validate! []
   (let [validator (v/validator {:username [not-nil]
@@ -28,25 +28,25 @@
     (is (core/is-valid? inited-form))
     (swap! data assoc :username "retro")
     (is (not (core/is-valid? inited-form)))
-    (is (nil? (core/errors-for-path inited-form :password)))
+    (is (nil? @(core/errors-for-path inited-form :password)))
     (core/commit! inited-form)
-    (is (not (nil? (core/errors-for-path inited-form :password))))))
+    (is (not (nil? @(core/errors-for-path inited-form :password))))))
 
 (deftest data-for-path []
   (let [validator (v/validator {})
         form (core/constructor validator)
         inited-form (form {:username "foo"})
         data (core/data inited-form)]
-    (is (= (core/data-for-path inited-form :username) "foo"))
+    (is (= @(core/data-for-path inited-form :username) "foo"))
     (swap! data assoc :username "bar")
-    (is (= (core/data-for-path inited-form :username) "bar"))))
+    (is (= @(core/data-for-path inited-form :username) "bar"))))
 
 (deftest update! []
   (let [validator (v/validator {})
         form (core/constructor validator)
         inited-form (form {:username "foo"})]
     (core/update! inited-form {:username "bar"})
-    (is (= (core/data-for-path inited-form :username) "bar"))
+    (is (= @(core/data-for-path inited-form :username) "bar"))
     (is (= #{[:username]}
            (:dirty-key-paths @(core/state inited-form))))))
 
@@ -72,23 +72,23 @@
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})]
     (is (= @(core/errors inited-form) {}))
-    (is (= nil (core/errors-for-path inited-form :username)))
-    (is (= nil (core/errors-for-path inited-form :password)))
+    (is (= nil @(core/errors-for-path inited-form :username)))
+    (is (= nil @(core/errors-for-path inited-form :password)))
     (swap! (core/data inited-form) assoc :username "foo")
     (is (= @(core/errors inited-form) {:password {:$errors$ {:value nil :failed [:not-nil]}}}))
-    (is (= nil (core/errors-for-path inited-form :password)))
+    (is (= nil @(core/errors-for-path inited-form :password)))
     (core/mark-dirty! inited-form)
-    (is (= {:value nil :failed [:not-nil]} (core/errors-for-path inited-form :password)))))
+    (is (= {:value nil :failed [:not-nil]} @(core/errors-for-path inited-form :password)))))
 
 (deftest dirty-paths-valid? []
-  (let [validator (v/validator {:username [not-nil]
-                                :password [not-nil]})
+  (let [validator (v/validator {:username [not-empty]
+                                :password [not-empty]})
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})]
     (is (core/dirty-paths-valid? inited-form))
     (swap! (core/data inited-form) assoc :username "foo")
     (is (core/dirty-paths-valid? inited-form))
-    (swap! (core/data inited-form) assoc :password nil)
+    (swap! (core/data inited-form) assoc :password "")
     (is (not (core/dirty-paths-valid? inited-form)))))
 
 (deftest dirty-paths-valid?-when-all-dirty []
@@ -101,11 +101,11 @@
     (is (not (core/dirty-paths-valid? inited-form)))))
 
 (deftest is-valid-path? []
-  (let [validator (v/validator {:username [not-nil]})
+  (let [validator (v/validator {:username [not-empty]})
         form (core/constructor validator)
         inited-form (form {})]
     (is (core/is-valid-path? inited-form :username))
-    (swap! (core/data inited-form) assoc :username nil)
+    (swap! (core/data inited-form) assoc :username "")
     (core/validate! inited-form true)
     (is (not (core/is-valid-path? inited-form :username)))))
 

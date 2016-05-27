@@ -15,13 +15,15 @@
                                                (assoc lengths new-path (count v))
                                                lengths)]
                     {:results (concat results new-results)
-                     :lengths (merge new-lengths lengths-with-current)}) 
-                  (assoc m :results (conj (:results m) (conj path k))))) results data)))
+                     :lengths (merge new-lengths lengths-with-current)})
+                  (if (nil? v)
+                    m
+                    (assoc m :results (conj (:results m) (conj path k)))))) results data)))
 
 (defn calculate-dirty-fields [prev current]
   (let [[p-diff c-diff] (into [] (diff prev current))
         p-report (analyze-diff p-diff)
-        c-report (analyze-diff c-diff)
+        c-report (analyze-diff c-diff) 
         [p-lengths-diff c-lengths-diff] (into [] (diff (:lengths p-report) (:lengths c-report)))]
     (set (concat (:results p-report)
                  (:results c-report)
