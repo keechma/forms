@@ -1,5 +1,11 @@
 # Keechma Forms
 
+[![Clojars Project](https://img.shields.io/clojars/v/keechma/forms.svg)](https://clojars.org/keechma/forms)
+
+- [Read Announcement](http://keechma.com/news/announcing-keechma-forms/)
+- [API Docs](http://keechma.com/api/forms/)
+- [Demo](http://retroaktive.me/keechma-forms/), [Annotated Source](http://localhost:5000/annotated/form-example/)
+
 Keechma Forms library allows you to build forms (using the Reagent library) that have a great UX. It implements the following features:
 
 - Validation system that can validate nested data of arbitrary depth
