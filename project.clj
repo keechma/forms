@@ -1,8 +1,7 @@
-(defproject forms "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+(defproject forms "0.1.0"
+  :description "Keechma Forms library allows you to build forms (using the Reagent library) that have a great UX."
+  :url "http://github.com/keechma/forms"
+  :license {:name "MIT"}
 
   :min-lein-version "2.6.1"
   
@@ -21,6 +20,10 @@
   :source-paths ["src"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
+  
+  :codox {:language :clojurescript
+          :metadata {:doc/format :markdown}
+          :namespaces [forms.core forms.dirty forms.validator]}
 
   :cljsbuild {:builds
               [{:id "dev"

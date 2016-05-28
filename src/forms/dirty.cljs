@@ -20,7 +20,9 @@
                     m
                     (assoc m :results (conj (:results m) (conj path k)))))) results data)))
 
-(defn calculate-dirty-fields [prev current]
+(defn calculate-dirty-fields
+  "Calculates the key paths that are dirty by diffing the initial and current form data."
+  [prev current]
   (let [[p-diff c-diff] (into [] (diff prev current))
         p-report (analyze-diff p-diff)
         c-report (analyze-diff c-diff) 

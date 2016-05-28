@@ -22,9 +22,9 @@
     (core/validate! inited-form)
     (is (= @(core/errors inited-form))
         {:password {:$errors$ {:value nil :failed [:not-nil]}}})
-    (is (not (core/is-valid? inited-form)))
-    (is (core/is-valid-path? inited-form :username))
-    (is (not (core/is-valid-path? inited-form :password)))))
+    (is (not @(core/is-valid? inited-form)))
+    (is @(core/is-valid-path? inited-form :username))
+    (is (not @(core/is-valid-path? inited-form :password)))))
 
 (deftest auto-validate []
   (let [validator (v/validator {:username [not-nil]
@@ -32,9 +32,9 @@
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})
         data (core/data inited-form)]
-    (is (core/is-valid? inited-form))
+    (is @(core/is-valid? inited-form))
     (swap! data assoc :username "retro")
-    (is (not (core/is-valid? inited-form)))
+    (is (not @(core/is-valid? inited-form)))
     (is (nil? @(core/errors-for-path inited-form :password)))
     (core/commit! inited-form)
     (is (not (nil? @(core/errors-for-path inited-form :password))))))
@@ -60,9 +60,9 @@
         validator (v/validator {:username [not-nil]})
         on-commit (fn [f] 
                     (when (= 0 @commit-called)
-                      (is (not (core/is-valid? f))))
+                      (is (not @(core/is-valid? f))))
                     (when (= 1 @commit-called)
-                      (is (core/is-valid? f)))
+                      (is @(core/is-valid? f)))
                     (swap! commit-called inc))
         form (core/constructor validator)
         inited-form (form {} {:on-commit on-commit})]
@@ -90,29 +90,29 @@
                                 :password [not-empty]})
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})]
-    (is (core/dirty-paths-valid? inited-form))
+    (is @(core/dirty-paths-valid? inited-form))
     (swap! (core/data inited-form) assoc :username "foo")
-    (is (core/dirty-paths-valid? inited-form))
+    (is @(core/dirty-paths-valid? inited-form))
     (swap! (core/data inited-form) assoc :password "")
-    (is (not (core/dirty-paths-valid? inited-form)))))
+    (is (not @(core/dirty-paths-valid? inited-form)))))
 
 (deftest dirty-paths-valid?-when-all-dirty []
   (let [validator (v/validator {:username [not-nil]
                                 :password [not-nil]})
         form (core/constructor validator)
         inited-form (form {})]
-    (is (core/dirty-paths-valid? inited-form))
+    (is @(core/dirty-paths-valid? inited-form))
     (core/validate! inited-form)
-    (is (not (core/dirty-paths-valid? inited-form)))))
+    (is (not @(core/dirty-paths-valid? inited-form)))))
 
 (deftest is-valid-path? []
   (let [validator (v/validator {:username [not-empty]})
         form (core/constructor validator)
         inited-form (form {})]
-    (is (core/is-valid-path? inited-form :username))
+    (is @(core/is-valid-path? inited-form :username))
     (swap! (core/data inited-form) assoc :username "")
     (core/validate! inited-form true)
-    (is (not (core/is-valid-path? inited-form :username)))))
+    (is (not @(core/is-valid-path? inited-form :username)))))
 
 (deftest reset-form! []
   (let [validator (v/validator {:username [not-nil]})
@@ -120,16 +120,16 @@
         inited-form (form {})]
     (swap! (core/data inited-form) assoc :username nil)
     (core/validate! inited-form)
-    (is (not (core/is-valid? inited-form)))
+    (is (not @(core/is-valid? inited-form)))
     (core/reset-form! inited-form)
     (is (= {} @(core/data inited-form)))
-    (is (core/is-valid? inited-form))
+    (is @(core/is-valid? inited-form))
     (core/validate! inited-form)
-    (is (not (core/is-valid? inited-form)))
+    (is (not @(core/is-valid? inited-form)))
     (core/reset-form! inited-form {:username "retro"})
-    (is (core/is-valid? inited-form))
+    (is @(core/is-valid? inited-form))
     (core/validate! inited-form)
-    (is (core/is-valid? inited-form))))
+    (is @(core/is-valid? inited-form))))
 
 (deftest validate-dirty-keys-behavior []
   (let [validator (v/validator {:username [not-empty]
