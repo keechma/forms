@@ -76,25 +76,25 @@
 
   **Simple example:**
 
-  ```
+  ```clojure
   (def not-empty [:not-empty (fn [v] (not (empty? v)))])
   (def form-validator-1 (validator {:username [not-empty]}))
   
   (form-validator-1 {:username \"\"})
-  ;; returns {:username {:$errors$ {:value \"\", :failed [:not-empty]}}}
+  ;; returns {:username {:$errors$ {:value \"\" :failed [:not-empty]}}}
   ```
 
   **Validators can validate nested paths:**
 
-  ```
-  (def form-validator-2 (validator {:user.name [not-empty]})
-  (form-validator-2 {:user {:username \"\"})
+  ```clojure
+  (def form-validator-2 (validator {:user.name [not-empty]}))
+  (form-validator-2 {:user {:username \"\"}})
   ;; returns {:user {:username {:$errors$ {:value \"\" :failed [:not-empty]}}}}
   ```
 
   **Validators can validate objects in the list:**
 
-  ```
+  ```clojure
   (def form-validator-3 (validator {:user.accounts.*.network [not-empty]}))
   (form-validator-3 {:user {:accounts [{:network \"\"}]}})
   ;; returns {:user {:accounts {0 {:network {:$errors$ {:value \"\" :failed [:not-empty]}}}}}}
@@ -102,7 +102,7 @@
 
   **Validators can validate values in the list:**
 
-  ```
+  ```clojure
   (def form-validator-4 (validator {:user.phone-numbers.* [not-empty]}))
   (form-validator-3 {:user {:phone-numbers [\"\"]}})
   ;; returns {:user {:phone-numbers {0 {:$errors$ {:value \"\" :failed [:not-empty]}}}}}
@@ -110,7 +110,7 @@
 
   **Validators can be nested inside other validators:**
 
-  ```
+  ```clojure
   (def user-validator (validator {:username [not-empty]}))
   (def article-validator (validator {:title [not-empty]
                                      :user [user-validator]}))
@@ -121,7 +121,7 @@
   ```
 
   Features provided by the validator ensure that you can validate any data structure, no matter how deeply nested it is. You can also create small focused validators that can be nested or composed which ensures
-  that your validation logic stays DRY and ensures the reuse of validators.
+  that your validation logic stays DRY and allows reuse of the validators.
   "
   [validators]
   (partial validator-runner validators))
@@ -129,7 +129,7 @@
 (defn comp-validators
   "Creates a validator that is a composition of the validators passed as the arguments:
 
-  ```
+  ```clojure
   (def not-empty [:not-empty (fn [v] (not (empty? v)))])
 
   (def username-validator (validator {:username [not-empty]}))
