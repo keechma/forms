@@ -4,6 +4,13 @@
             [forms.core :as core]
             [forms.test.common :refer [not-nil not-empty is-one is-twitter is-facebook]]))
 
+(deftest errors-keypaths []
+  (is (= [[:user :username] [:user :social-networks 0 :network] [:user :phone-numbers 0]]
+         (core/errors-keypaths {:user {:username :retro
+                             :social-networks [{:network :twitter}]
+                             :phone-numbers [0000]}}))))
+
+
 (deftest validate! []
   (let [validator (v/validator {:username [not-nil]
                                 :password [not-nil]})
@@ -124,5 +131,21 @@
     (core/validate! inited-form)
     (is (core/is-valid? inited-form))))
 
-(deftest validate-all []
-  )
+(deftest validate-dirty-keys-behavior []
+  (let [validator (v/validator {:username [not-empty]
+                                :password [not-empty]
+                                :phone-numbers.* [not-empty]})
+        form (core/constructor validator)
+        inited-form (form {} {:auto-validate? true})]
+    (swap! (core/data inited-form) assoc :username "")
+    (core/validate! inited-form)
+    (is (= #{[:username] [:password]}
+           (:cached-dirty-key-paths @(core/state inited-form))))
+    (swap! (core/data inited-form) assoc :phone-numbers [nil])
+    (is (= #{[:username] [:password] [:phone-numbers]}
+           (:dirty-key-paths @(core/state inited-form))))
+    (core/validate! inited-form)
+    (is (= #{[:username] [:password] [:phone-numbers 0]}
+           (:dirty-key-paths @(core/state inited-form))
+           (:cached-dirty-key-paths @(core/state inited-form))))))
+ 

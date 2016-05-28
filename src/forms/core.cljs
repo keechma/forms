@@ -1,11 +1,28 @@
 (ns forms.core
   (:require [reagent.core :as r]
             [clojure.string :as str]
-            [forms.util :as u :refer [key-to-path]]
+            [forms.util :refer [key-to-path]]
             [forms.dirty :refer [calculate-dirty-fields]])
   (:require-macros [reagent.ratom :refer [reaction]]))
 
 (declare init-state)
+
+
+(defn errors-keypaths
+  ([data] (distinct (:results (errors-keypaths data [] {:results []}))))
+  ([data path results]
+   (reduce-kv (fn [m k v]
+                (if (= k :$errors$)
+                  (assoc m :results (conj (:results m) path))
+                  (if (or (vector? v) (map? v))
+                    (let [{:keys [results lengths]} m
+                          new-path (conj path k)
+                          child-paths (errors-keypaths v new-path m)
+                          new-results (:results child-paths)]
+                      {:results (concat results new-results)})
+                    (if (nil? v)
+                      m
+                      (assoc m :results (conj (:results m) (conj path k))))))) results data)))
 
 (defprotocol IForm
   (init! [this] "Init the form")
@@ -17,12 +34,15 @@
   (validate! [this] [this dirty-only?] "Validate form")
   (commit! [this] "Commit form")
   (update! [this data] "Update data")
-  (mark-dirty! [this] [this is-dirty] "Mark all keys as dirty")
+  (mark-dirty! [this] "Mark all keys as dirty")
   (mark-dirty-paths! [this] "Mark dirty keys")
+  (clear-cached-dirty-key-paths! [this] "Clear dirty key paths that are cached after caling validate!")
   (is-valid? [this] "Is the form in the valid state")
   (is-valid-path? [this key-path] "Is the path in the valid state")
   (dirty-paths-valid? [this] "Are the dirty fields valid")
   (reset-form! [this] [this init-data] "Reset form"))
+
+
 
 (defrecord Form [state-atom validator opts]
   IForm
@@ -72,7 +92,7 @@
     (validate! this))
   (mark-dirty! [this]
     (let [errors (validator @(data this))
-          errors-keypaths (u/errors-keypaths errors)
+          errors-keypaths (errors-keypaths errors)
           current-state @(state this)
           current-dirty-paths (:dirty-key-paths state)]
       (reset! (state this)
@@ -92,6 +112,8 @@
                          (fn [path]
                            (nil? (get-in current-errors path))) dirty-paths)]
         (= (count valid-paths) (count dirty-paths)))))
+  (clear-cached-dirty-key-paths! [this]
+    (swap! (state this) assoc :cached-dirty-key-paths (set {})))
   (is-valid? [this]
     (= {} @(errors this)))
   (is-valid-path? [this key-path]
