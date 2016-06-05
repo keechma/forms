@@ -2,7 +2,7 @@
   (:require [cljs.test :refer-macros [deftest is]]
             [forms.validator :as v]
             [forms.core :as core]
-            [forms.test.common :refer [not-nil not-empty is-one is-twitter is-facebook]]))
+            [forms.test.common :refer [not-nil? not-empty? is-one? is-twitter? is-facebook?]]))
 
 (deftest errors-keypaths []
   (is (= [[:user :username] [:user :social-networks 0 :network] [:user :phone-numbers 0]]
@@ -12,8 +12,8 @@
 
 
 (deftest validate! []
-  (let [validator (v/validator {:username [not-nil]
-                                :password [not-nil]})
+  (let [validator (v/validator {:username [not-nil?]
+                                :password [not-nil?]})
         form (core/constructor validator)
         inited-form (form {})
         data (core/data inited-form)]
@@ -27,8 +27,8 @@
     (is (not @(core/is-valid-path? inited-form :password)))))
 
 (deftest auto-validate []
-  (let [validator (v/validator {:username [not-nil]
-                                :password [not-nil]})
+  (let [validator (v/validator {:username [not-nil?]
+                                :password [not-nil?]})
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})
         data (core/data inited-form)]
@@ -57,7 +57,7 @@
 
 (deftest commit! []
   (let [commit-called (atom 0)
-        validator (v/validator {:username [not-nil]})
+        validator (v/validator {:username [not-nil?]})
         on-commit (fn [f] 
                     (when (= 0 @commit-called)
                       (is (not @(core/is-valid? f))))
@@ -72,8 +72,8 @@
     (is (= 2 @commit-called))))
 
 (deftest errors []
-  (let [validator (v/validator {:username [not-nil]
-                                :password [not-nil]})
+  (let [validator (v/validator {:username [not-nil?]
+                                :password [not-nil?]})
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})]
     (is (= @(core/errors inited-form) {}))
@@ -86,8 +86,8 @@
     (is (= {:value nil :failed [:not-nil]} @(core/errors-for-path inited-form :password)))))
 
 (deftest dirty-paths-valid? []
-  (let [validator (v/validator {:username [not-empty]
-                                :password [not-empty]})
+  (let [validator (v/validator {:username [not-empty?]
+                                :password [not-empty?]})
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})]
     (is @(core/dirty-paths-valid? inited-form))
@@ -97,8 +97,8 @@
     (is (not @(core/dirty-paths-valid? inited-form)))))
 
 (deftest dirty-paths-valid?-when-all-dirty []
-  (let [validator (v/validator {:username [not-nil]
-                                :password [not-nil]})
+  (let [validator (v/validator {:username [not-nil?]
+                                :password [not-nil?]})
         form (core/constructor validator)
         inited-form (form {})]
     (is @(core/dirty-paths-valid? inited-form))
@@ -106,7 +106,7 @@
     (is (not @(core/dirty-paths-valid? inited-form)))))
 
 (deftest is-valid-path? []
-  (let [validator (v/validator {:username [not-empty]})
+  (let [validator (v/validator {:username [not-empty?]})
         form (core/constructor validator)
         inited-form (form {})]
     (is @(core/is-valid-path? inited-form :username))
@@ -115,7 +115,7 @@
     (is (not @(core/is-valid-path? inited-form :username)))))
 
 (deftest reset-form! []
-  (let [validator (v/validator {:username [not-nil]})
+  (let [validator (v/validator {:username [not-nil?]})
         form (core/constructor validator)
         inited-form (form {})]
     (swap! (core/data inited-form) assoc :username nil)
@@ -132,9 +132,9 @@
     (is @(core/is-valid? inited-form))))
 
 (deftest validate-dirty-keys-behavior []
-  (let [validator (v/validator {:username [not-empty]
-                                :password [not-empty]
-                                :phone-numbers.* [not-empty]})
+  (let [validator (v/validator {:username [not-empty?]
+                                :password [not-empty?]
+                                :phone-numbers.* [not-empty?]})
         form (core/constructor validator)
         inited-form (form {} {:auto-validate? true})]
     (swap! (core/data inited-form) assoc :username "")

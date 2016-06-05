@@ -1,4 +1,4 @@
-(defproject keechma/forms "0.1.0"
+(defproject keechma/forms "0.1.1"
   :description "Keechma Forms library allows you to build forms (using the Reagent library) that have a great UX."
   :url "http://github.com/keechma/forms"
   :license {:name "MIT"}
