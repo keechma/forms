@@ -88,23 +88,27 @@
 (defrecord Form [state-atom validator opts]
   IForm
   (init! [this]
-    (let [auto-validate? (get-in this [:opts :auto-validate?])]
-      (remove-watch (state this) :__form__) 
+    
+    (let [new-this (assoc this
+                          :data-cursor (r/cursor (:state-atom this) [:data])
+                          :errors-cursor (r/cursor (:state-atom this) [:errors]))
+          auto-validate? (get-in new-this [:opts :auto-validate?])]
+      (remove-watch (state new-this) :__form__) 
       (when auto-validate?
-        (add-watch (state this) :__form__
+        (add-watch (state new-this) :__form__
                    (fn [_ _ old-val new-val]
                      (let [old-data (:data old-val)
                            new-data (:data new-val)]
                        (when (not= old-data new-data)
-                         (mark-dirty-paths! this)
-                         (validate! this true))))))
-      this))
+                         (mark-dirty-paths! new-this)
+                         (validate! new-this true))))))
+      new-this))
 
   (state [this]
     (:state-atom this))
 
   (errors [this]
-    (r/cursor (state this) [:errors]))
+    (:errors-cursor this))
 
   (errors-for-path [this key-path]
     (reaction
@@ -114,7 +118,7 @@
        (when is-dirty? (get-in @(errors this) (conj path :$errors$))))))
 
   (data [this]
-    (r/cursor (state this) [:data]))
+    (:data-cursor this))
 
   (data-for-path [this key-path]
     (reaction
