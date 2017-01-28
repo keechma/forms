@@ -1,4 +1,4 @@
-(defproject keechma/forms "0.1.2"
+(defproject keechma/forms "0.1.3"
   :description "Keechma Forms library allows you to build forms (using the Reagent library) that have a great UX."
   :url "http://github.com/keechma/forms"
   :license {:name "MIT"}
@@ -7,13 +7,11 @@
   
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.7.228"]
-                 [lein-doo "0.1.6"]
-                 [reagent "0.6.0-rc"]
+                 [reagent "0.6.0"]
                  [org.clojure/core.async "0.2.374"
                   :exclusions [org.clojure/tools.reader]]]
   
   :plugins [[lein-figwheel "0.5.2"]
-            [lein-doo "0.1.6"]
             [lein-codox "0.9.3"]
             [lein-cljsbuild "1.1.3" :exclusions [[org.clojure/clojure]]]]
 
@@ -24,6 +22,9 @@
   :codox {:language :clojurescript
           :metadata {:doc/format :markdown}
           :namespaces [forms.core forms.dirty forms.validator]}
+  
+  :profiles {:test {:dependencies [[lein-doo "0.1.6"]]
+                    :plugins [[lein-doo "0.1.6"]]}}
 
   :cljsbuild {:builds
               [{:id "dev"
@@ -47,11 +48,11 @@
                            :optimizations :advanced
                            :pretty-print false}}
                {:id "test"
-                :source-paths ["src", "test"]
-                :compiler {:output-to
-                           "resources/public/js/compiled/test.js"
-                           :optimizations :none
-                           :main forms.test.test}}]}
+                                          :source-paths ["src", "test"]
+                                          :compiler {:output-to
+                                                     "resources/public/js/compiled/test.js"
+                                                     :optimizations :none
+                                                     :main forms.test.test}}]}
 
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
