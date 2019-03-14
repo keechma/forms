@@ -7,7 +7,7 @@
   
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/clojurescript "1.10.520"]
-                 [re-frame "0.10.6"]
+                 [reagent "0.8.1"]
                  [org.clojure/core.async "0.4.490"
                   :exclusions [org.clojure/tools.reader]]]
   
@@ -24,6 +24,7 @@
           :namespaces [forms.core forms.dirty forms.validator]}
   
   :profiles {:test {:dependencies [[lein-doo "0.1.6"]
+                                   [re-frame "0.10.6"]
                                    [day8.re-frame/test "0.1.5"]]
                     :plugins [[lein-doo "0.1.6"]]}}
 
