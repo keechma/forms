@@ -12,7 +12,7 @@
       parent-errors)))
 
 (defn ^:private get-list [next parent-data parent-errors full-data prev-path]
-  (let [data (reduce-kv (fn [m k v] 
+  (let [data (reduce-kv (fn [m k v]
                           (let [errors (or (get m k) {})
                                 res (next v errors full-data (conj prev-path k))]
                             (if (not (or (nil? res) (= {} res)))
@@ -23,9 +23,11 @@
 (defn ^:private validate-attr [validators value full-data path]
   (reduce (fn [failed v]
             (let [[name validator] v]
+              (if (ifn? validator)
                 (if (not (validator value full-data path))
                   (conj failed name)
-                  failed))) [] validators))
+                  failed)
+                (throw (js/Error. (str "Validator is not a function: " name)))))) [] validators))
 
 (defn ^:private validate-with-nested-validators [nested-validators value errors full-data path]
   (if (not (empty? nested-validators))

@@ -148,4 +148,3 @@
     (is (= #{[:username] [:password] [:phone-numbers 0]}
            (:dirty-key-paths @(core/state inited-form))
            (:cached-dirty-key-paths @(core/state inited-form))))))
- 
