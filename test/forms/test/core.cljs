@@ -2,7 +2,8 @@
   (:require [cljs.test :refer-macros [deftest is]]
             [forms.validator :as v]
             [forms.core :as core]
-            [forms.test.common :refer [not-nil? not-empty? is-one? is-twitter? is-facebook?]]))
+            [forms.test.common :refer [not-nil? not-empty? is-one? is-twitter? is-facebook?]]
+            [forms.util :as util]))
 
 (deftest errors-keypaths []
   (is (= [[:user :username] [:user :social-networks 0 :network] [:user :phone-numbers 0]]
@@ -148,3 +149,11 @@
     (is (= #{[:username] [:password] [:phone-numbers 0]}
            (:dirty-key-paths @(core/state inited-form))
            (:cached-dirty-key-paths @(core/state inited-form))))))
+
+(deftest key-to-path []
+  (is (= [:foo] (util/key-to-path :foo)))
+  (is (= [:foo :bar]) (util/key-to-path :foo.bar))
+  (is (= [:foo/bar] (util/key-to-path :foo/bar)))
+  (is (= [:foo/bar] (util/key-to-path [:foo/bar])))
+  (is (= [:foo/bar :baz] (util/key-to-path :foo/bar.baz)))
+  (is (= [:foo/bar :baz/qux] (util/key-to-path "foo/bar.baz/qux"))))

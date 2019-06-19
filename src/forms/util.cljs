@@ -8,9 +8,16 @@
     (re-matches #"[0-9]+" key) (js/parseInt key 10)
     :else (keyword key)))
 
+(defn split-key [key]
+  (let [ns (when (keyword? key) (namespace key))
+        path (str/split (name key) ".")]
+    (if ns
+      (concat [(keyword ns (first path))] (rest path))
+      path)))
+
 (defn key-to-path [key]
-  (let [path (if (vector? key) key (str/split (name key) "."))]
-    (vec (map keyword-or-integer path))))
+  (let [path (if (vector? key) key (split-key key))]
+    (mapv keyword-or-integer path)))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
