@@ -18,7 +18,7 @@
                   (if (or (vector? v) (map? v))
                     (let [{:keys [results lengths]} m
                           new-path (conj path k)
-                          child-paths (errors-keypaths v new-path m)
+                          child-paths (errors-keypaths v new-path {:results []})
                           new-results (:results child-paths)]
                       {:results (concat results new-results)})
                     (if (nil? v)

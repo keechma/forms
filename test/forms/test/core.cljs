@@ -8,8 +8,8 @@
 (deftest errors-keypaths []
   (is (= [[:user :username] [:user :social-networks 0 :network] [:user :phone-numbers 0]]
          (core/errors-keypaths {:user {:username :retro
-                             :social-networks [{:network :twitter}]
-                             :phone-numbers [0000]}}))))
+                                       :social-networks [{:network :twitter}]
+                                       :phone-numbers [0000]}}))))
 
 
 (deftest validate! []
@@ -157,3 +157,106 @@
   (is (= [:foo/bar] (util/key-to-path [:foo/bar])))
   (is (= [:foo/bar :baz] (util/key-to-path :foo/bar.baz)))
   (is (= [:foo/bar :baz/qux] (util/key-to-path "foo/bar.baz/qux"))))
+
+(deftest stress-test []
+  (let [errors {:listOfPreferredProviderNetworks 
+                {:$errors$ {:value nil,:failed [:not-empty]}},
+
+                :healthInsuranceProvider
+                {:$errors$ {:value nil,:failed [:not-empty]}}
+
+                :email
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :listInNetworkHospitals 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :employerAddress2 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :employerState 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :employerZipCode 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :otherFees
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :administrationFees
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :monthlyPremiumForEmployeesAndDependents 
+                {:$errors$ {:value nil,:failed [:not-empty]}}
+
+                :nrEmployeesEnrolled 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :employerCity 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :employerPrimaryPhone
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :firstName 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :nrOfEmployees
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :monthlyPremiumForEmployees 
+                {:$errors$ {:value nil,:failed [:not-empty]}}
+
+                :employerAddress1 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :lastName 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :stopLossAllocation 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :healthCareCost
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :nameOfEmployer
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :employerLocations
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :nrEmployeesAndDependentsEnrolled 
+                {:$errors$ {:value nil,:failed [:not-empty]}}
+
+                :employerCountry 
+                {:$errors$ {:value nil, :failed [:not-empty]}}
+
+                :isConfidentialAgreementAproved
+                {:$errors$ {:value nil,:failed [:true]}}
+                }]
+    (is (= [[:listOfPreferredProviderNetworks]
+            [:healthInsuranceProvider] 
+            [:email]
+            [:listInNetworkHospitals]
+            [:employerAddress2] 
+            [:employerState]
+            [:employerZipCode]
+            [:otherFees]
+            [:administrationFees] 
+            [:monthlyPremiumForEmployeesAndDependents]
+            [:nrEmployeesEnrolled]
+            [:employerCity]
+            [:employerPrimaryPhone]
+            [:firstName] 
+            [:nrOfEmployees] 
+            [:monthlyPremiumForEmployees]
+            [:employerAddress1]
+            [:lastName] 
+            [:stopLossAllocation] 
+            [:healthCareCost] 
+            [:nameOfEmployer]
+            [:employerLocations]
+            [:nrEmployeesAndDependentsEnrolled]
+            [:employerCountry] 
+            [:isConfidentialAgreementAproved]]
+           (core/errors-keypaths errors)))))
