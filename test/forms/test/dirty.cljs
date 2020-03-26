@@ -18,3 +18,8 @@
     (is (= dirty-fields
            #{[:username] [:social-networks 0 :foo] [:social-networks 0 :username] [:social-networks 0 :test 0 :cc] [:social-networks 1 :service] [:social-networks] [:social-networks 0 :test]}))))
 
+(deftest stress-test
+  (let [f1 (map (fn [i] {:id i :name (str i "-name") :address {:street (str i "-address") :city i}}) (range 0 1002))
+        f2 (map (fn [i] {:id i :name (str i "-name") :address {:street (str i "-address") :city i}}) (range 1 1003))
+        result (calculate-dirty-fields f1 f2)]
+    (is (= 4008 (count result)))))

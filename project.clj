@@ -1,4 +1,4 @@
-(defproject keechma/forms "0.1.6"
+(defproject keechma/forms "0.1.7"
   :description "Keechma Forms library allows you to build forms (using the Reagent library) that have a great UX."
   :url "http://github.com/keechma/forms"
   :license {:name "MIT"}
@@ -22,7 +22,9 @@
   :codox {:language :clojurescript
           :metadata {:doc/format :markdown}
           :namespaces [forms.core forms.dirty forms.validator]}
-  
+
+  :aliases {"test" ["with-profile" "test" "doo" "chrome" "test"]}
+
   :profiles {:test {:dependencies [[lein-doo "0.1.6"]
                                    [re-frame "0.10.6"]
                                    [day8.re-frame/test "0.1.5"]]

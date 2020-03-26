@@ -8,13 +8,13 @@
                 (if (or (vector? v) (map? v))
                   (let [{:keys [results lengths]} m
                         new-path (conj path k)
-                        child-diff (analyze-diff v new-path m)
+                        child-diff (analyze-diff v new-path {:results [] :lengths {}})
                         new-results (:results child-diff)
                         new-lengths (:lengths child-diff)
                         lengths-with-current (if (vector? v)
                                                (assoc lengths new-path (count v))
                                                lengths)]
-                    {:results (concat results new-results)
+                    {:results (into results new-results)
                      :lengths (merge new-lengths lengths-with-current)})
                   (if (nil? v)
                     m

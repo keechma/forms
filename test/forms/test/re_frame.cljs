@@ -74,6 +74,7 @@
 (deftest commit!
   (rf-test/run-test-sync
     (let [commit-called (atom 0)
+          form-path [:my-form :nested]
           validator (v/validator {:username [not-nil?]})
           is-valid? (rf/subscribe [::f/is-valid? form-path])
           on-commit (fn [f]
@@ -82,7 +83,6 @@
                       (when (= 1 @commit-called)
                         (is (f/is-valid? f)))
                       (swap! commit-called inc))
-          form-path [:my-form :nested]
           form (f/constructor validator form-path)
           _ (form {} {:on-commit on-commit})]
       (rf/dispatch [::f/commit! form-path])
